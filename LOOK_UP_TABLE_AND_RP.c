@@ -1,0 +1,74 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <wiringPi.h>
+
+#define LED_PIN 0 // Assuming the LED is connected to GPIO pin 17 (wiringPi pin 0)
+
+uint8_t return_num(uint8_t n);
+uint8_t num_check(uint8_t n, uint8_t arr[]);
+void light_up_led(uint8_t num_of_ones);
+
+uint8_t num_check(uint8_t n, uint8_t arr[])
+{
+    if (arr[n] != 0)
+    {
+        return arr[n];
+    }
+
+    uint8_t num_of_ones = return_num(n);
+    arr[n] = num_of_ones;
+
+    return num_of_ones;
+}
+
+uint8_t return_num(uint8_t n)
+{
+    uint8_t count = 0;
+
+    // Run through the number using while loop since we want to cut the number each time
+    while (n != 0)
+    {
+        if ((n & 0x1) == 1)
+        {
+            count++;
+        }
+        n >>= 1;
+    }
+
+    return count;
+}
+
+void light_up_led(uint8_t num_of_ones)
+{
+    // Assuming the LED is connected to GPIO pin 17
+    if (wiringPiSetup() == -1)
+    {
+        fprintf(stderr, "Error initializing WiringPi.\n");
+        return;
+    }
+
+    pinMode(LED_PIN, OUTPUT);
+
+    // Light up the LED based on the number of ones
+    for (int i = 0; i < num_of_ones; i++)
+    {
+        digitalWrite(LED_PIN, HIGH);
+        delay(500); // Delay for 500 milliseconds
+        digitalWrite(LED_PIN, LOW);
+        delay(500); // Delay for 500 milliseconds
+    }
+}
+
+int main()
+{
+    uint8_t n = 2;
+    uint8_t arr[256] = {0}; // Initialize the array with zeros
+    uint8_t sum_of_ones = num_check(n, arr);
+
+    printf("Number of ones in %u: %u\n", n, sum_of_ones);
+
+    // Light up the LED based on the number of ones
+    light_up_led(sum_of_ones);
+
+    return 0;
+}
